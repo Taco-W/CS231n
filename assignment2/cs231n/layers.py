@@ -19,12 +19,14 @@ def affine_forward(x, w, b):
   - out: output, of shape (N, M)
   - cache: (x, w, b)
   """
-  out = None
   #############################################################################
   # TODO: Implement the affine forward pass. Store the result in out. You     #
   # will need to reshape the input into rows.                                 #
   #############################################################################
-  pass
+
+  x_plain = np.reshape(x, (x.shape[0], -1))
+  out = np.dot(x_plain, w) + b
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -48,11 +50,17 @@ def affine_backward(dout, cache):
   - db: Gradient with respect to b, of shape (M,)
   """
   x, w, b = cache
-  dx, dw, db = None, None, None
   #############################################################################
   # TODO: Implement the affine backward pass.                                 #
   #############################################################################
-  pass
+
+  x_plain = np.reshape(x, (x.shape[0], -1))
+
+  db = np.sum(dout, axis=0)
+  dx_plain = np.dot(dout, w.T)
+  dx = np.reshape(dx_plain, x.shape)
+  dw = np.dot(x_plain.T, dout)
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -70,11 +78,10 @@ def relu_forward(x):
   - out: Output, of the same shape as x
   - cache: x
   """
-  out = None
   #############################################################################
   # TODO: Implement the ReLU forward pass.                                    #
   #############################################################################
-  pass
+  out = np.maximum(0, x)
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -93,11 +100,12 @@ def relu_backward(dout, cache):
   Returns:
   - dx: Gradient with respect to x
   """
-  dx, x = None, cache
   #############################################################################
   # TODO: Implement the ReLU backward pass.                                   #
   #############################################################################
-  pass
+
+  x = cache
+  dx = dout * (x>0).astype(int)
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -277,6 +285,7 @@ def dropout_forward(x, dropout_param):
   out = None
 
   if mode == 'train':
+    np.random.randn()
     ###########################################################################
     # TODO: Implement the training phase forward pass for inverted dropout.   #
     # Store the dropout mask in the mask variable.                            #
