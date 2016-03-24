@@ -34,9 +34,12 @@ class TwoLayerNet(object):
     - output_size: The number of classes C.
     """
     self.params = {}
-    self.params['W1'] = std * np.random.randn(input_size, hidden_size)
+    self.params['W1'] = np.sqrt(2.0/input_size) * np.random.randn(input_size, hidden_size)
     self.params['b1'] = np.zeros(hidden_size)
-    self.params['W2'] = std * np.random.randn(hidden_size, output_size)
+
+    print 'input_size', np.sqrt(2.0/input_size)
+    print 'hidden_size', np.sqrt(1.0/hidden_size)
+    self.params['W2'] = np.sqrt(1.0/hidden_size) * np.random.randn(hidden_size, output_size)
     self.params['b2'] = np.zeros(output_size)
 
   def loss(self, X, y=None, reg=0.0):
@@ -69,43 +72,24 @@ class TwoLayerNet(object):
     data_num, D = X.shape
 
     # Compute the forward pass
-
     scores = None
-    #############################################################################
-    # TODO: Perform the forward pass, computing the class scores for the input. #
-    # Store the result in the scores variable, which should be an array of      #
-    # shape (N, C).                                                             #
-    #############################################################################
+
     fc1 = np.dot(X, W1) + b1
-    #print fc1
     fc1_relu = np.maximum(fc1, 0)
-    #print fc1_relu
     fc2 = np.dot(fc1_relu, W2) + b2 
     scores = fc2
 
-  
-    #############################################################################
-    #                              END OF YOUR CODE                             #
-    #############################################################################
-    
-    # If the targets are not given then jump out, we're done
     if y is None:
       return scores
 
-    # Compute the loss
-    pred_exp = np.exp(fc2 - np.expand_dims(np.amax(fc2, axis = 1), axis = 1))
+    # Issue: np.amax. 
+    #pred_exp = np.exp(fc2 - np.expand_dims(np.amax(fc2, axis = 1), axis = 1))
+    pred_exp = np.exp(fc2)
 
     pred_conf = pred_exp / np.expand_dims(np.sum(pred_exp, axis = 1), axis = 1)
-    #############################################################################
-    # TODO: Finish the forward pass, and compute the loss. This should include  #
-    # both the data loss and L2 regularization for W1 and W2. Store the result  #
-    # in the variable loss, which should be a scalar. Use the Softmax           #
-    # classifier loss. So that your results match ours, multiply the            #
-    # regularization loss by 0.5                                                #
-    #############################################################################
+
     loss = np.sum( - np.log( pred_conf[np.arange(data_num), y] ) ) / data_num
-    for w in WList:
-      loss += 0.5 * reg * np.sum(w**2)
+    loss_with_reg = loss +  0.5 * reg * np.sum(W1**2) + 0.5 * reg * np.sum(W2**2)
     
     #############################################################################
     #                              END OF YOUR CODE                             #
@@ -137,7 +121,7 @@ class TwoLayerNet(object):
     #                              END OF YOUR CODE                             #
     #############################################################################
 
-    return loss, grads
+    return loss_with_reg, grads
 
   def train(self, X, y, X_val, y_val,
             learning_rate=1e-3, learning_rate_decay=0.95,

@@ -34,11 +34,8 @@ class LinearClassifier(object):
 
     # Run stochastic gradient descent to optimize W
     loss_history = []
-    print 'num_iters', num_iters
-    print 'num_train', num_train 
 
     batch_num = num_train/batch_size
-    print 'batch_num', batch_num 
 
     for it in xrange(num_iters):
       X_batch = None

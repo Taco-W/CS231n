@@ -63,10 +63,11 @@ def softmax_loss_vectorized(W, X, y, reg):
   loss = 0.0
   dW = np.zeros_like(W)
 
+  # Issue: No issue
   pred = np.dot(X, W)
   exp = np.exp(pred)
   prob = exp / np.expand_dims(np.sum(exp, axis = 1), axis=1)
-  loss += -np.log(prob[np.arange(X.shape[0]), y]).sum() / X.shape[0]
+  loss += -np.sum(np.log(prob[np.arange(X.shape[0]), y])) / X.shape[0]
   loss +=  0.5 * reg * np.sum(W * W)
 
   d_pred = prob
