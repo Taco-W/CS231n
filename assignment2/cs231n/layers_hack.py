@@ -42,7 +42,7 @@ def affine_forward(np_x, np_w, np_b):
   x_plain = np.reshape(x, (x.shape[0], -1))
 
   # Note: GPU has no automatically broadcast feature?
-  out = np.dot(x_plain, w) + np.repeat(np.expand_dims(b, axis=0), out0.shape[0], axis = 0)
+  out = np.dot(x_plain, w) + np.repeat(np.expand_dims(b, axis=0), x_plain.shape[0], axis = 0)
 
   cache = (np_x, np_w, np_b) 
   

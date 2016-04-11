@@ -92,7 +92,7 @@ def Test_Softmax_SVM():
   print 'loss: ', loss
   print 'dx error: ', rel_error(dx_num, dx)
 
-#Test_Affine_Forward()
+Test_Affine_Forward()
 #Test_Affine_Backward()
-Test_Softmax_SVM()
+#Test_Softmax_SVM()
 #Test_Test_Forward()
