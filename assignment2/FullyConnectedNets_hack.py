@@ -20,7 +20,7 @@ plt.rcParams['image.cmap'] = 'gray'
 
 def rel_error(x, y):
   """ returns relative error """
-  return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
+  return np.mean(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
 
 data = get_CIFAR10_data()
 for k, v in data.iteritems():
@@ -92,7 +92,7 @@ def Test_Softmax_SVM():
   print 'loss: ', loss
   print 'dx error: ', rel_error(dx_num, dx)
 
-Test_Affine_Forward()
-#Test_Affine_Backward()
+#Test_Affine_Forward()
+Test_Affine_Backward()
 #Test_Softmax_SVM()
 #Test_Test_Forward()

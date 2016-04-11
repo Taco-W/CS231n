@@ -80,15 +80,17 @@ def affine_backward(np_dout, cache):
 
   x_plain = np.reshape(x, (x.shape[0], -1))
 
-  # TODO: Sum may bring numerical accuracy problem.... sculprit is GPU?
   db = np.sum(dout, axis=0)
+
   dx_plain = np.dot(dout, np.transpose(w))
+
   dx = np.reshape(dx_plain, x.shape)
   dw = np.dot(np.transpose(x_plain), dout)
 
   np_dx = MinpyVarToNumpy(dx)
   np_dw = MinpyVarToNumpy(dw)
   np_db = MinpyVarToNumpy(db)
+
   return np_dx, np_dw, np_db
 
 
