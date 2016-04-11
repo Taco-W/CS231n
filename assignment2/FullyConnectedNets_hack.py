@@ -68,6 +68,33 @@ def Test_Affine_Backward():
   print 'dw error: ', rel_error(dw_num, dw)
   print 'db error: ', rel_error(db_num, db)
 
+
+def Relu_Forward():
+  # Test the relu_forward function
+  x = np.linspace(-0.5, 0.5, num=12).reshape(3, 4)
+  
+  out, _ = relu_forward(x)
+  correct_out = np.array([[ 0.,          0.,          0.,          0.,        ],
+                          [ 0.,          0.,          0.04545455,  0.13636364,],
+                          [ 0.22727273,  0.31818182,  0.40909091,  0.5,       ]])
+  
+  # Compare your output with ours. The error should be around 1e-8
+  print 'Testing relu_forward function:'
+  print 'difference: ', rel_error(out, correct_out)
+
+def Relu_Backward():
+  x = np.random.randn(10, 10)
+  dout = np.random.randn(*x.shape)
+  
+  dx_num = eval_numerical_gradient_array(lambda x: relu_forward(x)[0], x, dout)
+  
+  _, cache = relu_forward(x)
+  dx = relu_backward(dout, cache)
+  
+  # The error should be around 1e-12
+  print 'Testing relu_backward function:'
+  print 'dx error: ', rel_error(dx_num, dx)
+
 def Test_Test_Forward():
   test_sum_forward()
 
@@ -93,6 +120,8 @@ def Test_Softmax_SVM():
   print 'dx error: ', rel_error(dx_num, dx)
 
 #Test_Affine_Forward()
-Test_Affine_Backward()
+#Test_Affine_Backward()
+Relu_Forward()
+Relu_Backward()
 #Test_Softmax_SVM()
 #Test_Test_Forward()
