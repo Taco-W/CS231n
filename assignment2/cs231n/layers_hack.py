@@ -39,22 +39,11 @@ def affine_forward(np_x, np_w, np_b):
   w = NumpyVarToMinpy(np_w)
   b = NumpyVarToMinpy(np_b)
 
-  #Should be Doable
   x_plain = np.reshape(x, (x.shape[0], -1))
-  out0 = np.dot(x_plain, w)
-  #out1 = out0 + np.shape(b, (1, ))
-  
-  #print 'out0.shape', out0.shape
-  #print 'b shape:', b.shape
-  #print 'np.expand_dims(b, axis=0)', np.expand_dims(b, axis=0).shape
 
-  # TODO: GPU Add has no automatically broadcast feature
-  #out = out0 + b
-  out = out0 + np.repeat(np.expand_dims(b, axis=0), out0.shape[0], axis = 0)
+  # Note: GPU has no automatically broadcast feature?
+  out = np.dot(x_plain, w) + np.repeat(np.expand_dims(b, axis=0), out0.shape[0], axis = 0)
 
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
   cache = (np_x, np_w, np_b) 
   
   np_out = MinpyVarToNumpy(out)
@@ -121,7 +110,7 @@ def relu_forward(np_x):
   np_out = MinpyVarToNumpy(out)
   return np_out, cache
 
-def test_forward():
+def test_sum_forward():
 
   np_x = py_np.zeros((2, 10))
   np_w = py_np.zeros((10, 3))
@@ -138,13 +127,10 @@ def test_forward():
   np_out = MinpyVarToNumpy(out)
 
   var = py_np.random.randn(2, 3)
-  print 'var', var
   tmp = NumpyVarToMinpy(var)
   sum_tmp = np.sum(tmp, axis = 0)
 
   sum_py = MinpyVarToNumpy(sum_tmp)
-  print 'sum_py', sum_py
-
 
 def relu_backward(np_dout, cache):
   """
@@ -574,7 +560,7 @@ def spatial_batchnorm_backward(dout, cache):
   return dx, dgamma, dbeta
   
 
-def svm_loss(x, y):
+def svm_loss(np_x, np_y):
   """
   Computes the loss and gradient using for multiclass SVM classification.
 
@@ -588,8 +574,13 @@ def svm_loss(x, y):
   - loss: Scalar giving the loss
   - dx: Gradient of the loss with respect to x
   """
+
+  x = NumpyVarToMinpy(np_x)
+  y = NumpyVarToMinpy(np_y)
+
   N = x.shape[0]
   correct_class_scores = x[np.arange(N), y]
+  
   margins = np.maximum(0, x - correct_class_scores[:, np.newaxis] + 1.0)
   margins[np.arange(N), y] = 0
   loss = np.sum(margins) / N
@@ -598,10 +589,14 @@ def svm_loss(x, y):
   dx[margins > 0] = 1
   dx[np.arange(N), y] -= num_pos
   dx /= N
-  return loss, dx
+
+  np_loss = MinpyVarToNumpy(loss)
+  np_dx = MinpyVarToNumpy(dx)
+
+  return np_loss, np_dx
 
 
-def softmax_loss(x, y):
+def softmax_loss(np_x, np_y):
   """
   Computes the loss and gradient for softmax classification.
 
@@ -615,11 +610,19 @@ def softmax_loss(x, y):
   - loss: Scalar giving the loss
   - dx: Gradient of the loss with respect to x
   """
+  x = NumpyVarToMinpy(np_x)
+  y = NumpyVarToMinpy(np_y)
+
   probs = np.exp(x - np.max(x, axis=1, keepdims=True))
   probs /= np.sum(probs, axis=1, keepdims=True)
   N = x.shape[0]
   loss = -np.sum(np.log(probs[np.arange(N), y])) / N
+
   dx = probs.copy()
   dx[np.arange(N), y] -= 1
   dx /= N
-  return loss, dx
+
+  np_loss = MinpyVarToNumpy(loss)
+  np_dx = MinpyVarToNumpy(dx)
+
+  return np_loss, np_dx

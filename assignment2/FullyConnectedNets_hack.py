@@ -69,8 +69,30 @@ def Test_Affine_Backward():
   print 'db error: ', rel_error(db_num, db)
 
 def Test_Test_Forward():
-  test_forward()
+  test_sum_forward()
+
+def Test_Softmax_SVM():
+  num_classes, num_inputs = 10, 50
+  x = 0.001 * np.random.randn(num_inputs, num_classes)
+  y = np.random.randint(num_classes, size=num_inputs)
+  
+  dx_num = eval_numerical_gradient(lambda x: svm_loss(x, y)[0], x, verbose=False)
+  loss, dx = svm_loss(x, y)
+  
+  # Test svm_loss function. Loss should be around 9 and dx error should be 1e-9
+  print 'Testing svm_loss:'
+  print 'loss: ', loss
+  print 'dx error: ', rel_error(dx_num, dx)
+  
+  dx_num = eval_numerical_gradient(lambda x: softmax_loss(x, y)[0], x, verbose=False)
+  loss, dx = softmax_loss(x, y)
+  
+  # Test softmax_loss function. Loss should be 2.3 and dx error should be 1e-8
+  print '\nTesting softmax_loss:'
+  print 'loss: ', loss
+  print 'dx error: ', rel_error(dx_num, dx)
 
 #Test_Affine_Forward()
-Test_Affine_Backward()
+#Test_Affine_Backward()
+Test_Softmax_SVM()
 #Test_Test_Forward()
