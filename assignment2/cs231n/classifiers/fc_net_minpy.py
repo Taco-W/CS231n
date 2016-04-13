@@ -92,7 +92,7 @@ class TwoLayerNet(object):
       loss += np.sum(W2 ** 2) * 0.5 * self.reg
       return loss
 
-    grad_function = grad_and_loss(train_loss)
+    grad_function = core.grad_and_loss(train_loss)
 
     # TODO: support input/output self.params as a whole?
     grads = {}
