@@ -1,7 +1,9 @@
-# This file implements fullyconnected network in minpy
-# All the array created in this file should be minpy.array
-# But input array is numpy and should be converted to minpy.array
-# Output is required to be converted into python.numpy
+"""
+This file implements fullyconnected network in minpy.
+
+All the array created in this file belongs to minpy.array Type.
+Types of input values to loss() function, i.e. training/testing data & targets, should also be minpy.array.
+"""
 
 import numpy as np
 
@@ -47,22 +49,12 @@ class TwoLayerNet(object):
     """
     self.params = {}
     self.reg = reg
-    
-    ############################################################################
-    # TODO: Initialize the weights and biases of the two-layer net. Weights    #
-    # should be initialized from a Gaussian with standard deviation equal to   #
-    # weight_scale, and biases should be initialized to zero. All weights and  #
-    # biases should be stored in the dictionary self.params, with first layer  #
-    # weights and biases using the keys 'W1' and 'b1' and second layer weights #
-    # and biases using the keys 'W2' and 'b2'.                                 #
-    ############################################################################
+
+    # TODO: params should be created as minpy.array
     self.params['W1'] = np.random.randn(input_dim, hidden_dim) * weight_scale 
     self.params['b1'] = np.zeros(hidden_dim)
     self.params['W2'] = np.random.randn(hidden_dim, num_classes) * weight_scale 
     self.params['b2'] = np.zeros(num_classes)
-    ############################################################################
-    #                             END OF YOUR CODE                             #
-    ############################################################################
 
 
   def loss(self, X, y=None):
@@ -84,21 +76,17 @@ class TwoLayerNet(object):
     - grads: Dictionary with the same keys as self.params, mapping parameter
       names to gradients of the loss with respect to those parameters.
     """  
-    # convert X, y into mxnet.ndarray
+    # Note: types of X, y are mxnet.ndarray
 
     def train_loss(X, y, W1, W2, b1, b2):
       l1, l1_cache = affine_relu_forward(X, W1, b1)
       l2, l2_cache = affine_forward(l1, W2, b2)
       scores = l2 
-      ############################################################################
-      #                             END OF YOUR CODE                             #
-      ############################################################################
 
       # TODO: Deal with Test Mode 
       if y is None:
         return scores
     
-      grads = {}
       loss, d_scores = softmax_loss(scores, y)
       loss += np.sum(W1 ** 2) * 0.5 * self.reg
       loss += np.sum(W2 ** 2) * 0.5 * self.reg
@@ -107,6 +95,7 @@ class TwoLayerNet(object):
     grad_function = grad_and_loss(train_loss)
 
     # TODO: support input/output self.params as a whole?
+    grads = {}
     loss, grads['W1'], grads['b1'], grads['W2'], grads['b2'] 
       = grad_function(X, y, 
                       self.params['W1'], self.params['W2'], self.params['b1'], self.params['b2'])
