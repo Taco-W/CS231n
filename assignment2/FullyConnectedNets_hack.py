@@ -121,7 +121,7 @@ def Test_Softmax_SVM():
 
 #Test_Affine_Forward()
 #Test_Affine_Backward()
-Relu_Forward()
-Relu_Backward()
-#Test_Softmax_SVM()
+#Relu_Forward()
+#Relu_Backward()
+Test_Softmax_SVM()
 #Test_Test_Forward()
