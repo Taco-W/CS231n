@@ -5,7 +5,7 @@ All the array created in this file belongs to minpy.array Type.
 Types of input values to loss() function, i.e. training/testing data & targets, should also be minpy.array.
 """
 
-import numpy as np
+import numpy as py_np
 
 from cs231n.layers_hack import *
 from cs231n.layer_utils_hack import *
@@ -15,7 +15,11 @@ configfile = '~/minpy/python/minpy'
 sys.path.append(os.path.dirname(os.path.expanduser(configfile)))
 
 import minpy
-import minpy.core
+import minpy.numpy as np
+import minpy.numpy.random as random
+from minpy.core import grad_and_loss
+
+#import minpy.dispatch.policy as policy
 
 class TwoLayerNet(object):
   """
@@ -50,12 +54,10 @@ class TwoLayerNet(object):
     self.params = {}
     self.reg = reg
 
-    # TODO: params should be created as minpy.array
-    self.params['W1'] = np.random.randn(input_dim, hidden_dim) * weight_scale 
-    self.params['b1'] = np.zeros(hidden_dim)
-    self.params['W2'] = np.random.randn(hidden_dim, num_classes) * weight_scale 
-    self.params['b2'] = np.zeros(num_classes)
-
+    self.params['W1'] = random.randn(input_dim, hidden_dim) * weight_scale 
+    self.params['b1'] = np.zeros((hidden_dim))
+    self.params['W2'] = random.randn(hidden_dim, num_classes) * weight_scale 
+    self.params['b2'] = np.zeros((num_classes))
 
   def loss(self, X, y=None):
     """
@@ -92,13 +94,19 @@ class TwoLayerNet(object):
       loss += np.sum(W2 ** 2) * 0.5 * self.reg
       return loss
 
-    grad_function = core.grad_and_loss(train_loss)
+    # TODO: support multiple bp interfaces
+    grad_function = grad_and_loss(train_loss, range(2, 6))
 
-    # TODO: support input/output self.params as a whole?
-    grads = {}
-    loss, grads['W1'], grads['b1'], grads['W2'], grads['b2'] 
+    # TODO: support return grads in an array
+    loss, grads_array
       = grad_function(X, y, 
                       self.params['W1'], self.params['W2'], self.params['b1'], self.params['b2'])
+
+    grads = {}
+    grads['W1'] = grads_array[0]
+    grads['W2'] = grads_array[1]
+    grads['b1'] = grads_array[2]
+    grads['b2'] = grads_array[3]
 
     return loss, grads
 
@@ -178,8 +186,8 @@ class FullyConnectedNet(object):
       else:
         out_d = num_classes
 
-      self.params[self.GetWeightName(l)] = np.random.randn(input_d, out_d) * weight_scale
-      self.params[self.GetBiasName(l)] = np.zeros(out_d)
+      self.params[self.GetWeightName(l)] = random.randn(input_d, out_d) * weight_scale
+      self.params[self.GetBiasName(l)] = np.zeros((out_d))
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
@@ -213,11 +221,8 @@ class FullyConnectedNet(object):
 
     Input / output: Same as TwoLayerNet above.
     """
-    X = X.astype(self.dtype)
     mode = 'test' if y is None else 'train'
 
-    # Set train/test mode for batchnorm params and dropout param since they
-    # behave differently during training and testing.
     if self.dropout_param is not None:
       self.dropout_param['mode'] = mode   
 
@@ -225,70 +230,38 @@ class FullyConnectedNet(object):
       for bn_param in self.bn_params:
         bn_param[mode] = mode
 
-    ############################################################################
-    # TODO: Implement the forward pass for the fully-connected net, computing  #
-    # the class scores for X and storing them in the scores variable.          #
-    #                                                                          #
-    # When using dropout, you'll need to pass self.dropout_param to each       #
-    # dropout forward pass.                                                    #
-    #                                                                          #
-    # When using batch normalization, you'll need to pass self.bn_params[0] to #
-    # the forward pass for the first batch normalization layer, pass           #
-    # self.bn_params[1] to the forward pass for the second batch normalization #
-    # layer, etc.                                                              #
-    ############################################################################
-    last_layer_output = X
-    cache = {}
+    # TODO: add bn_options and dropout option
+    assert not (self.use_batchnorm or self.use_dropout)
 
-    for l in xrange(self.num_layers):
-      if l < (self.num_layers - 1):
-        if (not self.use_batchnorm) and (not self.use_dropout):
-          last_layer_output, cache[l] = affine_relu_forward(last_layer_output, 
-            self.params[self.GetWeightName(l)], self.params[self.GetBiasName(l)]) 
+    # args is [X, Y, W[0], ..., W[n-1], b[0], ..., b[n-1]]
+    def train_loss(*args):
+      last_layer_output = args[0]
+
+      for l in xrange(self.num_layers):
+        if l < (self.num_layers - 1):
+          # TODO: last_layer_output is mutated in this code
+          last_layer_output, _ = affine_relu_forward(last_layer_output, 
+            args[2 + l], args[2 + self.num_layers + l]) 
         else:
-          assert False
-      else:
-        last_layer_output, cache[l] = affine_forward(last_layer_output, 
-          self.params[self.GetWeightName(l)], self.params[self.GetBiasName(l)])
+          last_layer_output, _ = affine_forward(last_layer_output, 
+            args[2 + l], args[2 + self.num_layers + l]) 
 
-    scores = last_layer_output 
-    ############################################################################
-    #                             END OF YOUR CODE                             #
-    ############################################################################
+      scores = last_layer_output 
 
+      if mode == 'test':
+        return scores
 
-    # If test mode return early
-    if mode == 'test':
-      return scores
+      loss, _ = softmax_loss(scores, y)
+      return loss
 
-    ############################################################################
-    # TODO: Implement the backward pass for the fully-connected net. Store the #
-    # loss in the loss variable and gradients in the grads dictionary. Compute #
-    # data loss using softmax, and make sure that grads[k] holds the gradients #
-    # for self.params[k]. Don't forget to add L2 regularization!               #
-    #                                                                          #
-    # When using batch normalization, you don't need to regularize the scale   #
-    # and shift parameters.                                                    #
-    #                                                                          #
-    # NOTE: To ensure that your implementation matches ours and you pass the   #
-    # automated tests, make sure that your L2 regularization includes a factor #
-    # of 0.5 to simplify the expression for the gradient.                      #
-    ############################################################################
+    grad_function = grad_and_loss(train_loss, range(2, 2+2*self.num_layers))
+
+    #TODO: define self.WeightAndBiasArray
+    loss, grads_array = grad_function(X, y, *self.WeightAndBiasArray)
     grads = {}
-    loss, d_scores = softmax_loss(scores, y)
-    delta = d_scores
+
     for l in xrange(self.num_layers - 1, -1, -1):
-      if l == self.num_layers - 1:
-        delta, grads[self.GetWeightName(l)], grads[self.GetBiasName(l)] = affine_backward(delta, cache[l])
-      else:
-        delta, grads[self.GetWeightName(l)], grads[self.GetBiasName(l)] = affine_relu_backward(delta, cache[l])
-
-        loss += np.sum(self.params[self.GetWeightName(l)] **2) * 0.5 * self.reg 
-        grads[self.GetWeightName(l)] += self.params[self.GetWeightName(l)] * self.reg
-
-
-    ############################################################################
-    #                             END OF YOUR CODE                             #
-    ############################################################################
+      grads[self.GetWeightName(l)] = grads_array[l]
+      grads[self.GetBiasName(l)] = grads_array[l + self.num_layers]
 
     return loss, grads
