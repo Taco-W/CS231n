@@ -1,22 +1,10 @@
-import time
-import numpy as np
-#import matplotlib.pyplot as plt
-from cs231n.classifiers.fc_net_hack import *
+from cs231n.classifiers.fc_net_hack_layer_level import *
 from cs231n.data_utils import get_CIFAR10_data
 from cs231n.gradient_check import eval_numerical_gradient, eval_numerical_gradient_array
 from cs231n.solver import Solver
 
-"""
-%matplotlib inline
-plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
-"""
-
-# for auto-reloading external modules
-# see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
-# %load_ext autoreload
-# %autoreload 2
+import time
+import numpy as np
 
 def rel_error(x, y):
   """ returns relative error """
@@ -110,7 +98,8 @@ def Test_Softmax_SVM():
   print 'Testing svm_loss:'
   print 'loss: ', loss
   print 'dx error: ', rel_error(dx_num, dx)
-  
+ 
+  '''
   dx_num = eval_numerical_gradient(lambda x: softmax_loss(x, y)[0], x, verbose=False)
   loss, dx = softmax_loss(x, y)
   
@@ -118,6 +107,7 @@ def Test_Softmax_SVM():
   print '\nTesting softmax_loss:'
   print 'loss: ', loss
   print 'dx error: ', rel_error(dx_num, dx)
+  '''
 
 #Test_Affine_Forward()
 #Test_Affine_Backward()

@@ -6,7 +6,6 @@ import os
 configfile = '~/NewMinpy/minpy/python/minpy'
 sys.path.append(os.path.dirname(os.path.expanduser(configfile)))
 
-
 import minpy 
 import minpy.numpy as np
 import minpy.core
@@ -584,8 +583,6 @@ def svm_loss(np_x, np_y):
   correct_class_scores = x[np.arange(N), y]
   
   #margins = np.maximum(0, x - correct_class_scores[:, np.newaxis] + 1.0)
-  print x.shape
-  print correct_class_scores.shape
   margins = np.maximum(0, x - np.expand_dims(correct_class_scores, axis = 1) + 1.0)
 
   margins[np.arange(N), y] = 0
