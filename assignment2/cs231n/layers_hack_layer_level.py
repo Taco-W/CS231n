@@ -14,6 +14,7 @@ from minpy.array_variants import ArrayType
 import minpy.dispatch.policy as policy
 
 #np.set_policy(policy.OnlyNumpyPolicy())
+#np.set_policy(PreferMXNetPolicy())
 
 def affine_forward(np_x, np_w, np_b):
   """
@@ -561,7 +562,7 @@ def spatial_batchnorm_backward(dout, cache):
   return dx, dgamma, dbeta
   
 
-def svm_loss(np_x, np_y):
+def svm_loss(np_x, np_y, mode):
   """
   Computes the loss and gradient using for multiclass SVM classification.
 
@@ -575,6 +576,10 @@ def svm_loss(np_x, np_y):
   - loss: Scalar giving the loss
   - dx: Gradient of the loss with respect to x
   """
+  if mode == 'cpu':
+    np.set_policy(policy.OnlyNumpyPolicy())
+  else:
+    np.set_policy(policy.PreferMXNetPolicy())
 
   x = NumpyVarToMinpy(np_x)
   y = NumpyVarToMinpy(np_y)
@@ -597,7 +602,6 @@ def svm_loss(np_x, np_y):
   np_dx = MinpyVarToNumpy(dx)
 
   return np_loss, np_dx
-
 
 def softmax_loss(np_x, np_y):
   """
