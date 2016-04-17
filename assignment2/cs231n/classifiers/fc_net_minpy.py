@@ -85,22 +85,28 @@ class TwoLayerNet(object):
       l2, l2_cache = affine_forward(l1, W2, b2)
       scores = l2 
 
-      # TODO: Deal with Test Mode 
       if y is None:
         return scores
-    
+   
       loss, d_scores = softmax_loss(scores, y)
       loss += np.sum(W1 ** 2) * 0.5 * self.reg
       loss += np.sum(W2 ** 2) * 0.5 * self.reg
       return loss
 
-    # TODO: support multiple bp interfaces
+    self.params_array = []
+    params_list_name = ['W1', 'W2', 'b1', 'b2']
+    for param_name in params_list_name:
+      self.params_array.append(self.params[param_name])
+
+    if y is None:
+      return train_loss(X, y, *self.params_array)
+
+    # TODO: support multiple bp interfaces 
     grad_function = grad_and_loss(train_loss, range(2, 6))
 
     # TODO: support return grads in an array
     loss, grads_array
-      = grad_function(X, y, 
-                      self.params['W1'], self.params['W2'], self.params['b1'], self.params['b2'])
+      = grad_function(X, y, *self.params_array)
 
     grads = {}
     grads['W1'] = grads_array[0]
@@ -234,12 +240,14 @@ class FullyConnectedNet(object):
     assert not (self.use_batchnorm or self.use_dropout)
 
     # args is [X, Y, W[0], ..., W[n-1], b[0], ..., b[n-1]]
+    # type of (args) is list.
     def train_loss(*args):
       last_layer_output = args[0]
 
       for l in xrange(self.num_layers):
         if l < (self.num_layers - 1):
           # TODO: last_layer_output is mutated in this code
+          # TODO: rewrite last_layer_output 
           last_layer_output, _ = affine_relu_forward(last_layer_output, 
             args[2 + l], args[2 + self.num_layers + l]) 
         else:

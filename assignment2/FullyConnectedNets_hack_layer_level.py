@@ -86,7 +86,7 @@ def Relu_Backward():
 def Test_Test_Forward():
   test_sum_forward()
 
-def Test_Softmax_SVM():
+def Test_SVM():
   num_classes, num_inputs = 10, 50
   x = 0.001 * np.random.randn(num_inputs, num_classes)
   y = np.random.randint(num_classes, size=num_inputs)
@@ -103,16 +103,8 @@ def Test_Softmax_SVM():
   # Note: relative error would we large, because numeriacal error is unstable in gpu mode.
   print 'dx error: ', rel_error(dx_num, dx)
  
-  '''
-  dx_num = eval_numerical_gradient(lambda x: softmax_loss(x, y)[0], x, verbose=False)
-  loss, dx = softmax_loss(x, y)
-  
-  # Test softmax_loss function. Loss should be 2.3 and dx error should be 1e-8
-  print '\nTesting softmax_loss:'
-  print 'loss: ', loss
-  print 'dx error: ', rel_error(dx_num, dx)
-  '''
-def Test_Softmax_SVM_CPU_GPU():
+
+def Test_SVM_CPU_GPU():
   num_classes, num_inputs = 10, 50
   x = 0.001 * np.random.randn(num_inputs, num_classes)
   y = np.random.randint(num_classes, size=num_inputs)
@@ -125,10 +117,24 @@ def Test_Softmax_SVM_CPU_GPU():
   print 'loss: ', loss
   print 'dx error: ', rel_error(dx_cpu, dx_gpu)
 
+def Test_Softmax():
+  num_classes, num_inputs = 10, 50
+  x = 0.001 * np.random.randn(num_inputs, num_classes)
+  y = np.random.randint(num_classes, size=num_inputs)
+
+  #dx_num = eval_numerical_gradient(lambda x: softmax_loss(x, y)[0], x, verbose=False)
+  loss, dx = softmax_loss(x, y)
+  
+  # Test softmax_loss function. Loss should be 2.3 and dx error should be 1e-8
+  print 'Testing softmax_loss:'
+  print 'loss: ', loss
+  #print 'dx error: ', rel_error(dx_num, dx)
+
 #Test_Affine_Forward()
 #Test_Affine_Backward()
 #Relu_Forward()
 #Relu_Backward()
-#Test_Softmax_SVM()
-Test_Softmax_SVM_CPU_GPU()
+#Test_SVM()
+#Test_SVM_CPU_GPU()
+Test_Softmax()
 #Test_Test_Forward()
