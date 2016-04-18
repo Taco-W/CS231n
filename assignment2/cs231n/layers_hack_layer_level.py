@@ -14,9 +14,9 @@ from minpy.array_variants import ArrayType
 import minpy.dispatch.policy as policy
 
 #np.set_policy(policy.OnlyNumpyPolicy())
-#np.set_policy(PreferMXNetPolicy())
+#np.set_policy(policy.PreferMXNetPolicy())
 
-def affine_forward(np_x, np_w, np_b):
+def affine_forward(x, w, b):
   """
   Computes the forward pass for an affine (fully-connected) layer.
 
@@ -35,19 +35,14 @@ def affine_forward(np_x, np_w, np_b):
   - cache: (x, w, b)
   """
 
-  x = NumpyVarToMinpy(np_x)
-  w = NumpyVarToMinpy(np_w)
-  b = NumpyVarToMinpy(np_b)
-
   x_plain = np.reshape(x, (x.shape[0], -1))
 
   # Note: GPU has no automatically broadcast feature?
   out = np.dot(x_plain, w) + np.repeat(np.expand_dims(b, axis=0), x_plain.shape[0], axis = 0)
 
-  cache = (np_x, np_w, np_b) 
+  cache = (x, w, b) 
   
-  np_out = MinpyVarToNumpy(out)
-  return np_out, cache
+  return out, cache
 
 def NumpyVarToMinpy(var):
   return minpy.array.Value.wrap(var)
@@ -55,7 +50,7 @@ def NumpyVarToMinpy(var):
 def MinpyVarToNumpy(var):
   return minpy.array.Value.wrap(var).get_data(ArrayType.NUMPY)
 
-def affine_backward(np_dout, cache):
+def affine_backward(dout, cache):
   """
   Computes the backward pass for an affine layer.
 
@@ -70,14 +65,7 @@ def affine_backward(np_dout, cache):
   - dw: Gradient with respect to w, of shape (D, M)
   - db: Gradient with respect to b, of shape (M,)
   """
-  np_x, np_w, np_b = cache
-
-  x = NumpyVarToMinpy(np_x)
-  w = NumpyVarToMinpy(np_w)
-  b = NumpyVarToMinpy(np_b)
-  dout = NumpyVarToMinpy(np_dout)
-
-
+  x, w, b = cache
   x_plain = np.reshape(x, (x.shape[0], -1))
 
   db = np.sum(dout, axis=0)
@@ -87,14 +75,10 @@ def affine_backward(np_dout, cache):
   dx = np.reshape(dx_plain, x.shape)
   dw = np.dot(np.transpose(x_plain), dout)
 
-  np_dx = MinpyVarToNumpy(dx)
-  np_dw = MinpyVarToNumpy(dw)
-  np_db = MinpyVarToNumpy(db)
-
-  return np_dx, np_dw, np_db
+  return dx, dw, db
 
 
-def relu_forward(np_x):
+def relu_forward(x):
   """
   Computes the forward pass for a layer of rectified linear units (ReLUs).
 
@@ -105,12 +89,10 @@ def relu_forward(np_x):
   - out: Output, of the same shape as x
   - cache: x
   """
-  x = NumpyVarToMinpy(np_x)
   out = np.maximum(0, x)
-  cache = np_x
+  cache = x
 
-  np_out = MinpyVarToNumpy(out)
-  return np_out, cache
+  return out, cache
 
 def test_sum_forward():
 
@@ -134,7 +116,7 @@ def test_sum_forward():
 
   sum_py = MinpyVarToNumpy(sum_tmp)
 
-def relu_backward(np_dout, cache):
+def relu_backward(dout, cache):
   """
   Computes the backward pass for a layer of rectified linear units (ReLUs).
 
@@ -145,22 +127,18 @@ def relu_backward(np_dout, cache):
   Returns:
   - dx: Gradient with respect to x
   """
-  dout = NumpyVarToMinpy(np_dout)
   #############################################################################
   # TODO: Implement the ReLU backward pass.                                   #
   #############################################################################
 
-  np_x = cache
-  x = NumpyVarToMinpy(np_x)
+  x = cache
   # Note: GPU doesn't need astype
   # dx = dout * (x>0).astype(int)
   dx = dout * (x>0)  
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
-
-  np_dx = MinpyVarToNumpy(dx)
-  return np_dx
+  return dx
 
 
 def batchnorm_forward(x, gamma, beta, bn_param):
@@ -562,7 +540,7 @@ def spatial_batchnorm_backward(dout, cache):
   return dx, dgamma, dbeta
   
 
-def svm_loss(np_x, np_y, mode):
+def svm_loss(x, y, mode):
   """
   Computes the loss and gradient using for multiclass SVM classification.
 
@@ -581,9 +559,6 @@ def svm_loss(np_x, np_y, mode):
   else:
     np.set_policy(policy.PreferMXNetPolicy())
 
-  x = NumpyVarToMinpy(np_x)
-  y = NumpyVarToMinpy(np_y)
-
   N = x.shape[0]
   correct_class_scores = x[np.arange(N), y]
   
@@ -598,12 +573,9 @@ def svm_loss(np_x, np_y, mode):
   dx[np.arange(N), y] -= num_pos
   dx /= N
 
-  np_loss = MinpyVarToNumpy(loss)
-  np_dx = MinpyVarToNumpy(dx)
+  return loss, dx
 
-  return np_loss, np_dx
-
-def softmax_loss(np_x, np_y):
+def softmax_loss(x, y):
   """
   Computes the loss and gradient for softmax classification.
 
@@ -617,9 +589,6 @@ def softmax_loss(np_x, np_y):
   - loss: Scalar giving the loss
   - dx: Gradient of the loss with respect to x
   """
-  x = NumpyVarToMinpy(np_x)
-  y = NumpyVarToMinpy(np_y)
-
   #np.expand_dims(correct_class_scores, axis = 1)
   #probs = np.exp(x - np.max(x, axis=1, keepdims=True))
   #print "x.shape", x.shape
@@ -634,7 +603,4 @@ def softmax_loss(np_x, np_y):
   dx[np.arange(N), y] -= 1
   dx /= N
 
-  np_loss = MinpyVarToNumpy(loss)
-  np_dx = MinpyVarToNumpy(dx)
-
-  return np_loss, np_dx
+  return loss, dx
