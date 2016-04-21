@@ -101,18 +101,14 @@ class TwoLayerNet(object):
     if y is None:
       return train_loss(X, y, *self.params_array)
 
-    # TODO: support multiple bp interfaces 
     grad_function = grad_and_loss(train_loss, range(2, 6))
 
-    # TODO: support return grads in an array
     loss, grads_array
       = grad_function(X, y, *self.params_array)
 
     grads = {}
-    grads['W1'] = grads_array[0]
-    grads['W2'] = grads_array[1]
-    grads['b1'] = grads_array[2]
-    grads['b2'] = grads_array[3]
+    for i in range(len(params_list_name)):
+      grads[params_list_name[i]] = grads_array[i]
 
     return loss, grads
 
